@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = 3000;
 const admin = require('firebase-admin');
+const cors = require('cors'); 
 
 // Initialize Firebase
 const serviceAccount = require('./Firebase/cafeapp-abee4-firebase-adminsdk-dnba1-a33f265a63.json');
@@ -22,6 +23,10 @@ app.get('/', (req, res) => {
   res.send({ message: 'Hello from the Express API!' });
 });
 
+app.use(cors({
+    origin: 'http://localhost:8081' // Allow requests from your frontend's origin
+  }));
+  
 // Set up routes
 app.use('/Coffee_Products', Coffee_Products);
 app.use('/Dessert_Products', Dessert_Products);
