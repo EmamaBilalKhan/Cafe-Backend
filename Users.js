@@ -46,4 +46,34 @@ router.post('/login', async (req, res) => {
         res.status(400).send({ error: error.message });
     }
 });
+
+router.get('/UserDetails', async (req, res) => {
+    const db = req.app.locals.firebaseAdmin.firestore();
+    const admin = req.app.locals.firebaseAdmin;
+    const uid = req.query.uid;
+
+    try {
+        // Get user data from Firebase Auth
+        const userRecord = await admin.auth().getUser(uid);
+        
+        // Get additional user data from Firestore
+        const docRef = db.collection('users').doc(uid);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+            res.status(404).send('User not found in Firestore');
+        } else {
+            // Combine data from Auth and Firestore
+            const userData = {
+                email: userRecord.email,
+                ...doc.data()
+            };
+            res.status(200).send(userData);
+        }
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        res.status(500).send({ error: 'Failed to retrieve user details' });
+    }
+});
+
 module.exports = router;
