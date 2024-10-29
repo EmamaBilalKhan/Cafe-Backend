@@ -1,35 +1,33 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+require("dotenv").config();
 const admin = require('firebase-admin');
 const cors = require('cors'); 
 
-// Initialize Firebase
 const serviceAccount = require('./Firebase/cafeapp-abee4-firebase-adminsdk-dnba1-a33f265a63.json');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-// Share the Firebase instance with route files
 app.locals.firebaseAdmin = admin;
+const port = process.env.PORT;
 
-// Import routes
 const Coffee_Products = require('./Coffee_Products');
 const Dessert_Products = require('./Dessert_Products');
+const Users = require('./Users');
 
 
-// Main route
 app.get('/', (req, res) => {
-  res.send({ message: 'Hello from the Express API!' });
+  res.send({ message: 'Hello from the Cafe API!' });
 });
 
 app.use(cors({
-    origin: 'http://localhost:8081' // Allow requests from your frontend's origin
+    origin: 'http://localhost:8081'
   }));
-  
-// Set up routes
+
 app.use('/Coffee_Products', Coffee_Products);
 app.use('/Dessert_Products', Dessert_Products);
+app.use('/Users', Users);
 
 
 app.listen(port, () => {
