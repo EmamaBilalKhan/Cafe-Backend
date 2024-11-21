@@ -3,29 +3,25 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const { 
     auth,
-    getAuth, 
     createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signOut, 
-    sendEmailVerification,
-    sendPasswordResetEmail
-   } = require('./Firebase/FirebaseConfig');
+    signInWithEmailAndPassword, sendEmailVerification
+} = require('./Firebase/FirebaseConfig');
 
-router.use(bodyParser.json()); // Parse JSON request bodies
+router.use(bodyParser.json());
 
-// User registration route
-router.post('/register', async (req, res) => {
-    const { email, password, username, phone } = req.body;
+router.post('/SignUp', async (req, res) => {
+    const { email, password } = req.body;
 
     try {
         // Create user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         const db = req.app.locals.firebaseAdmin.firestore();
-        // Store the phone number in Firestore (or Realtime Database)
+        
+        // Store user data in Firestore
         await db.collection('users').doc(user.uid).set({
-            username: username,
-            phone: phone
+            userType: "customer",
+            isRegistered: false
         });
 
         res.status(201).send({ message: 'User created successfully', uid: user.uid });
@@ -35,45 +31,55 @@ router.post('/register', async (req, res) => {
     }
 });
 
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+router.get('/LoginUserInformation', async (req, res) => {
+    const idToken = req.headers.authorization.split('Bearer ')[1];
+    const decodedToken = await req.app.locals.firebaseAdmin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        res.status(200).send({ message: 'Login successful', uid: user.uid });
-    } catch (error) {
-        console.error('Error logging in:', error);
-        res.status(400).send({ error: error.message });
-    }
-});
-
-router.get('/UserDetails', async (req, res) => {
-    const db = req.app.locals.firebaseAdmin.firestore();
-    const admin = req.app.locals.firebaseAdmin;
-    const uid = req.query.uid;
-
-    try {
-        // Get user data from Firebase Auth
-        const userRecord = await admin.auth().getUser(uid);
         
-        // Get additional user data from Firestore
-        const docRef = db.collection('users').doc(uid);
-        const doc = await docRef.get();
+        const userDoc = await req.app.locals.firebaseAdmin.firestore()
+        .collection('users')
+        .doc(uid)
+        .get();
 
-        if (!doc.exists) {
-            res.status(404).send('User not found in Firestore');
-        } else {
-            // Combine data from Auth and Firestore
-            const userData = {
-                email: userRecord.email,
-                ...doc.data()
-            };
-            res.status(200).send(userData);
-        }
-    } catch (error) {
-        console.error('Error fetching user details:', error);
-        res.status(500).send({ error: 'Failed to retrieve user details' });
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ message: "User not found" });
+          }
+        
+          const { userType, isRegistered } = userDoc.data();
+
+          return res.status(200).json({ userType, isRegistered });    
+        } catch (error) {
+        console.error('Error fetching specific user info:', error);
+        return res.status(500).json({ message: "failed to retrieve user details" });
     }
 });
+
+// Register user additional data
+router.post('/RegisterUser', async (req, res) => {
+    const idToken = req.headers.authorization.split('Bearer ')[1];
+    const decodedToken = await req.app.locals.firebaseAdmin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    
+    try {
+        await req.app.locals.firebaseAdmin.firestore()
+        .collection('users')
+        .doc(uid)
+        .set({
+            username: req.body.name,
+            contact: req.body.contact,
+            address: req.body.address,
+            isRegistered: true
+        }, { merge: true });
+        res.status(200).send({ message: 'User registered successfully'});
+    } catch (error) {
+        console.error('Error registering user:', error);
+        res.status(500).send({ error: 'Failed to register user' });
+    }
+});
+
+
 
 module.exports = router;
