@@ -15,6 +15,7 @@ const port = process.env.PORT;
 const Coffee_Products = require('./Coffee_Products');
 const Dessert_Products = require('./Dessert_Products');
 const Users = require('./Users');
+const Orders = require('./Orders');
 
 
 app.get('/', (req, res) => {
@@ -28,6 +29,7 @@ app.use(cors({
 app.use('/Coffee_Products', Coffee_Products);
 app.use('/Dessert_Products', Dessert_Products);
 app.use('/Users', Users);
+app.use('/Orders', Orders);
 
 
 app.listen(port, () => {

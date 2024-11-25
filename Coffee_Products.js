@@ -7,6 +7,15 @@ router.use('/', function(req, res, next){
  });
  
  router.get('/', async (req, res) => {
+  const idToken = req.headers.authorization.split('Bearer ')[1];
+    const decodedToken = await req.app.locals.firebaseAdmin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const db = req.app.locals.firebaseAdmin.firestore();
+    const userDoc = await db.collection('users').doc(uid).get();
+    if(!userDoc.exists){
+        res.status(404).send({message: 'User not found'});
+    }
+    else{
    try {
      const db = req.app.locals.firebaseAdmin.firestore();
      const coffeeCollection = db.collection('Coffee');
@@ -22,6 +31,6 @@ router.use('/', function(req, res, next){
      console.error('Error fetching coffee data:', error);
      res.status(500).json({ error: 'Failed to fetch coffee data' });
    }
- });
+ }});
   
 module.exports = router;
