@@ -23,8 +23,9 @@ app.get('/', (req, res) => {
 });
 
 app.use(cors({
-    origin: 'http://localhost:8081'
-  }));
+  origin: '*',
+}));
+
 
 app.use('/Coffee_Products', Coffee_Products);
 app.use('/Dessert_Products', Dessert_Products);
