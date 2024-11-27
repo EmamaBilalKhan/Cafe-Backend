@@ -4,7 +4,7 @@ require("dotenv").config();
 const admin = require('firebase-admin');
 const cors = require('cors'); 
 
-const serviceAccount = require('./Firebase/cafeapp-abee4-firebase-adminsdk-dnba1-a33f265a63.json');
+const serviceAccount = require('../Firebase/cafeapp-abee4-firebase-adminsdk-dnba1-a33f265a63.json');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });

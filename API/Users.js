@@ -7,7 +7,7 @@ const nodemailer = require("nodemailer");
 const { 
     auth,
     createUserWithEmailAndPassword,
-} = require('./Firebase/FirebaseConfig');
+} = require('../Firebase/FirebaseConfig');
 
 router.use(bodyParser.json());
 
