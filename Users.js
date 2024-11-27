@@ -19,6 +19,11 @@ const transporter = nodemailer.createTransport({
     },
   });
 
+  router.use('/', function(req, res, next){
+    console.log("A request for Users received at " + Date.now());
+    next();
+ });
+
 router.post('/SignUp', async (req, res) => {
     const { email, password } = req.body;
 
